@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>🎓 Sistema Acadêmico | Visualizador SQLite + Teste de Dados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+/* Reset e melhorias de organização */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #eef2f7 100%);
+    color: #1a2c3e;
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+.wrapper {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Header Hero */
+.hero {
+    background: linear-gradient(135deg, #0a2b3e 0%, #1b4f6e 100%);
+    border-radius: 2rem;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+}
+
+.hero::before {
+    content: "🎓";
+    position: absolute;
+    right: 20px;
+    bottom: -20px;
+    font-size: 150px;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+.hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.hero h1 i {
+    background: rgba(255,255,255,0.2);
+    padding: 0.7rem;
+    border-radius: 1.2rem;
+    font-size: 1.5rem;
+}
+
+.hero p {
+    font-size: 1rem;
+    opacity: 0.9;
+    max-width: 70%;
+}
+
+.stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    padding: 0.4rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+}
+
+/* Sistema de Abas - Mais organizado */
+.tabs-system {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.tabs-header {
+    display: flex;
+    flex-wrap: wrap;
+    background: #f8fafc;
+    border-bottom: 2px solid #e2edf2;
+    gap: 0.2rem;
+    padding: 0.5rem 1rem 0 1rem;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.tabs-header::-webkit-scrollbar {
+    height: 4px;
+}
+
+.tabs-header::-webkit-scrollbar-track {
+    background: #e2edf2;
+    border-radius: 10px;
+}
+
+.tabs-header::-webkit-scrollbar-thumb {
+    background: #ff8c42;
+    border-radius: 10px;
+}
+
+.tab-btn {
+    padding: 0.9rem 1.5rem;
+    background: transparent;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #5f7f9c;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 0.8rem 0.8rem 0 0;
+    white-space: nowrap;
+}
+
+.tab-btn i {
+    font-size: 1rem;
+}
+
+.tab-btn:hover {
+    background: #eef3fa;
+    color: #1a4c6e;
+}
+
+.tab-btn.active {
+    background: white;
+    color: #ff8c42;
+    border-bottom: 3px solid #ff8c42;
+}
+
+.tabs-content {
+    padding: 1.8rem;
+}
+
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Cards de conteúdo - Organizados em grid */
+.info-card {
+    background: linear-gradient(135deg, #f9fbfd 0%, #ffffff 100%);
+    border-radius: 1rem;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #ff8c42;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.info-card h3 {
+    color: #1a4c6e;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.explanation-box {
+    background: linear-gradient(135deg, #fef9e6 0%, #fff6e6 100%);
+    border-radius: 1rem;
+    padding: 1.2rem;
+    margin-top: 1rem;
+    border: 1px solid #ffe0b5;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.explanation-box h4 {
+    color: #c96f0e;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.explanation-box p {
+    color: #5a3e1a;
+    line-height: 1.6;
+}
+
+/* Tabela de estrutura - Melhor visualização */
+.structure-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.structure-table th {
+    background: linear-gradient(135deg, #f0f6fa 0%, #e8f0f5 100%);
+    padding: 0.8rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #1a4c6e;
+    border-bottom: 2px solid #e2edf2;
+}
+
+.structure-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #f0f4f8;
+    font-size: 0.85rem;
+}
+
+.structure-table tr:hover {
+    background: #fafcfd;
+}
+
+.field-name-code {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-weight: 700;
+    color: #2c7da0;
+    background: #eef3fa;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.4rem;
+    font-size: 0.8rem;
+}
+
+.constraint-tag {
+    display: inline-block;
+    background: #fef3e2;
+    color: #b85c00;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin: 0.2rem 0.2rem;
+}
+
+/* Tabela de dados - Scroll responsivo */
+.data-table-container {
+    overflow-x: auto;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 1rem;
+    min-width: 600px;
+}
+
+.data-table th {
+    background: linear-gradient(135deg, #1a4c6e 0%, #0f3b56 100%);
+    color: white;
+    padding: 0.8rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    position: sticky;
+    top: 0;
+}
+
+.data-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #eef2f7;
+    font-size: 0.85rem;
+}
+
+.data-table tr:hover {
+    background: #f9fbfd;
+}
+
+.empty-data {
+    text-align: center;
+    padding: 2rem;
+    color: #9bb7d0;
+    font-style: italic;
+}
+
+.fk-badge {
+    background: #e8f0fe;
+    color: #1a4c6e;
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.7rem;
+    font-family: monospace;
+    display: inline-block;
+}
+
+/* Seção de Teste - Mais organizada */
+.test-section {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    border: 1px solid #e2edf2;
+}
+
+.test-section h2 {
+    color: #1a4c6e;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #2c5a7a;
+    font-size: 0.9rem;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #e2edf2;
+    border-radius: 0.8rem;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    background: white;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: #ff8c42;
+    box-shadow: 0 0 0 3px rgba(255,140,66,0.1);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #ff8c42 0%, #e67e22 100%);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,140,66,0.3);
+}
+
+.test-result {
+    margin-top: 2rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.test-result.show {
+    display: block;
+}
+
+.test-result.success {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-left: 4px solid #4caf50;
+    color: #2e7d32;
+}
+
+.test-result.error {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border-left: 4px solid #f44336;
+    color: #c62828;
+}
+
+.data-preview {
+    background: linear-gradient(135deg, #f9fbfd 0%, #ffffff 100%);
+    border-radius: 1rem;
+    padding: 1.2rem;
+    margin-top: 1rem;
+    overflow-x: auto;
+    border: 1px solid #e2edf2;
+}
+
+.data-preview h4 {
+    color: #1a4c6e;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Scroll to top */
+.scroll-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: linear-gradient(135deg, #ff8c42 0%, #e67e22 100%);
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 100;
+}
+
+.scroll-top.visible {
+    opacity: 1;
+}
+
+.scroll-top:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255,140,66,0.4);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 1rem;
+    color: #5f7f9c;
+    font-size: 0.8rem;
+    border: 1px solid #e2edf2;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .wrapper {
+        padding: 1rem;
+    }
+    
+    .hero {
+        padding: 1.5rem;
+    }
+    
+    .hero p {
+        max-width: 100%;
+    }
+    
+    .hero h1 {
+        font-size: 1.5rem;
+    }
+    
+    .stats {
+        gap: 0.8rem;
+    }
+    
+    .stat-item {
+        font-size: 0.75rem;
+    }
+    
+    .tabs-header {
+        padding: 0.5rem 0.5rem 0 0.5rem;
+    }
+    
+    .tab-btn {
+        padding: 0.7rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .tabs-content {
+        padding: 1rem;
+    }
+    
+    .test-section {
+        padding: 1.5rem;
+    }
+    
+    .test-section h2 {
+        font-size: 1.2rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+    
+    .structure-table,
+    .data-table {
+        font-size: 0.75rem;
+    }
+    
+    .structure-table td,
+    .data-table td,
+    .structure-table th,
+    .data-table th {
+        padding: 0.5rem;
+    }
+}
+
+/* Melhorias visuais para impressão */
+@media print {
+    .tabs-header,
+    .test-section,
+    .scroll-top,
+    footer {
+        display: none;
+    }
+    
+    .tab-pane {
+        display: block !important;
+    }
+    
+    .wrapper {
+        padding: 0;
+    }
+}
+
+/* Animações suaves */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table-card,
+.info-card,
+.explanation-box {
+    animation: slideIn 0.3s ease;
+}
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="hero">
+        <h1><i class="fas fa-database"></i> Sistema Acadêmico SQLite</h1>
+        <p>Visualizador completo do banco de dados educacional. Explore a estrutura das tabelas, os dados inseridos e teste inserindo seus próprios registros!</p>
+        <div class="stats">
+            <div class="stat-item"><i class="fas fa-table"></i> 12 Tabelas</div>
+            <div class="stat-item"><i class="fas fa-link"></i> 8 Relacionamentos FK</div>
+            <div class="stat-item"><i class="fas fa-check-circle"></i> CHECK/UNIQUE Constraints</div>
+            <div class="stat-item"><i class="fas fa-flask"></i> Teste seus dados</div>
+        </div>
+    </div>
+
+    <div class="tabs-system">
+        <div class="tabs-header" id="tabsHeader"></div>
+        <div class="tabs-content" id="tabsContent"></div>
+    </div>
+
+    <!-- Seção de Teste Interativa -->
+    <div class="test-section" id="testSection">
+        <h2><i class="fas fa-flask"></i> Teste Interativo - Insira seus próprios dados</h2>
+        <p style="margin-bottom: 1.5rem; color: #5f7f9c;">Escolha uma tabela e insira novos registros para ver como eles se integram ao sistema. Os dados serão adicionados temporariamente na visualização.</p>
+        
+        <div class="form-group">
+            <label><i class="fas fa-table"></i> Selecione a Tabela:</label>
+            <select id="testTableSelect">
+                <option value="alunos">Alunos</option>
+                <option value="cursos">Cursos</option>
+                <option value="disciplinas">Disciplinas</option>
+                <option value="professores">Professores</option>
+                <option value="funcionarios">Funcionários</option>
+                <option value="matriculas">Matrículas</option>
+                <option value="notas">Notas</option>
+                <option value="mensalidades">Mensalidades</option>
+            </select>
+        </div>
+
+        <div id="dynamicForm"></div>
+
+        <button class="btn-primary" onclick="insertTestData()"><i class="fas fa-plus-circle"></i> Inserir Dados</button>
+
+        <div id="testResult" class="test-result"></div>
+        
+        <div id="dataPreview" class="data-preview" style="display: none;"></div>
+    </div>
+
+    <footer>
+        <i class="fas fa-code"></i> Modelo SQLite completo | 12 tabelas relacionais | Dados de exemplo ativos<br>
+        📌 Abas interativas: visualize a estrutura, dados inseridos e explicações detalhadas de cada tabela.<br>
+        🧪 Seção de teste: insira seus próprios dados e veja como eles se integram ao sistema!
+    </footer>
+</div>
+<div class="scroll-top" id="scrollTop">
+    <i class="fas fa-arrow-up"></i>
+</div>
+
+<script>
+    // Dados completos do banco (estrutura + dados de exemplo)
+    let databaseSchema = {
+        funcionarios: {
+            description: "Base de funcionários da instituição",
+            explanation: "Esta tabela armazena todos os funcionários da instituição. Cada funcionário pode ser um professor, coordenador, secretário, etc. É a tabela base para o cadastro de pessoas que trabalham na escola. O campo id_funcionario é a chave primária que identifica unicamente cada funcionário, e nome_funcionario guarda o nome completo.",
+            columns: [
+                { name: "id_funcionario", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "nome_funcionario", type: "TEXT", constraints: "NOT NULL" }
+            ],
+            data: [
+                { id_funcionario: 1, nome_funcionario: "Carlos Souza" },
+                { id_funcionario: 2, nome_funcionario: "Fernanda Rocha" }
+            ],
+            relations: ["→ professores(id_funcionario)"]
+        },
+        alunos: {
+            description: "Cadastro de alunos com status acadêmico",
+            explanation: "Tabela principal para cadastro de alunos. Contém informações pessoais como nome, data de nascimento e CPF (único). O campo status_aluno permite controlar a situação acadêmica (ativo, inativo ou trancado). created_at registra automaticamente a data de cadastro. É referenciada por várias outras tabelas como matriculas e contratos_educacionais.",
+            columns: [
+                { name: "id_aluno", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "nome_aluno", type: "TEXT", constraints: "NOT NULL" },
+                { name: "data_nascimento", type: "DATE", constraints: "" },
+                { name: "cpf", type: "TEXT", constraints: "NOT NULL UNIQUE" },
+                { name: "status_aluno", type: "TEXT", constraints: "DEFAULT 'ativo' CHECK" },
+                { name: "created_at", type: "DATETIME", constraints: "DEFAULT CURRENT_TIMESTAMP" }
+            ],
+            data: [
+                { id_aluno: 1, nome_aluno: "Ana Lima", data_nascimento: "2005-06-15", cpf: "123.456.789-00", status_aluno: "ativo", created_at: "2026-03-14 10:00:00" },
+                { id_aluno: 2, nome_aluno: "Bruno Mendes", data_nascimento: "2004-11-20", cpf: "987.654.321-00", status_aluno: "ativo", created_at: "2026-03-14 10:00:00" }
+            ]
+        },
+        cursos: {
+            description: "Cursos oferecidos pela instituição",
+            explanation: "Define os cursos disponíveis na instituição. Cada curso tem um identificador único e um nome. Os cursos são a base para as disciplinas, que são organizadas dentro de cada curso. Exemplos: Técnico em Informática, Técnico em Administração, etc.",
+            columns: [
+                { name: "id_curso", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "nome_curso", type: "TEXT", constraints: "NOT NULL" }
+            ],
+            data: [
+                { id_curso: 1, nome_curso: "Técnico em Informática" },
+                { id_curso: 2, nome_curso: "Técnico em Administração" }
+            ]
+        },
+        professores: {
+            description: "Professores (vinculados a funcionários)",
+            explanation: "Tabela que estende funcionários para o papel específico de professor. Cada professor é também um funcionário (relacionamento 1:1 com funcionarios). Isso permite que um funcionário possa ter diferentes papéis. O campo id_funcionario é uma chave estrangeira que referencia a tabela funcionarios.",
+            columns: [
+                { name: "id_professor", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "id_funcionario", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" }
+            ],
+            data: [
+                { id_professor: 1, id_funcionario: 1, nome_funcionario: "Carlos Souza" },
+                { id_professor: 2, id_funcionario: 2, nome_funcionario: "Fernanda Rocha" }
+            ],
+            relations: ["FK → funcionarios(id_funcionario)"]
+        },
+        disciplinas: {
+            description: "Disciplinas vinculadas aos cursos",
+            explanation: "Armazena as disciplinas que compõem cada curso. Cada disciplina pertence a um curso específico (chave estrangeira id_curso). As disciplinas são o conteúdo que os alunos podem se matricular. Exemplo: Banco de Dados pertence ao curso de Informática.",
+            columns: [
+                { name: "id_disciplina", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "nome_disciplina", type: "TEXT", constraints: "NOT NULL" },
+                { name: "id_curso", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" }
+            ],
+            data: [
+                { id_disciplina: 1, nome_disciplina: "Banco de Dados", id_curso: 1, curso: "Técnico em Informática" },
+                { id_disciplina: 2, nome_disciplina: "Rede de Computadores", id_curso: 1, curso: "Técnico em Informática" }
+            ]
+        },
+        matriculas: {
+            description: "Matrículas de alunos em disciplinas",
+            explanation: "Registra quais alunos estão matriculados em quais disciplinas. Possui uma constraint UNIQUE para evitar matrículas duplicadas. O status_matricula controla se a matrícula está ativa, cancelada ou concluída. data_matricula registra quando a matrícula foi realizada. É uma tabela de relacionamento muitos-para-muitos entre alunos e disciplinas.",
+            columns: [
+                { name: "id_matricula", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "id_aluno", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" },
+                { name: "id_disciplina", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" },
+                { name: "data_matricula", type: "DATE", constraints: "NOT NULL" },
+                { name: "status_matricula", type: "TEXT", constraints: "DEFAULT 'ativa' CHECK" },
+                { name: "created_at", type: "DATETIME", constraints: "DEFAULT CURRENT_TIMESTAMP" }
+            ],
+            data: [
+                { id_matricula: 1, id_aluno: 1, aluno: "Ana Lima", id_disciplina: 1, disciplina: "Banco de Dados", data_matricula: "2026-03-14", status_matricula: "ativa" },
+                { id_matricula: 2, id_aluno: 2, aluno: "Bruno Mendes", id_disciplina: 2, disciplina: "Rede de Computadores", data_matricula: "2026-03-14", status_matricula: "ativa" }
+            ]
+        },
+        notas: {
+            description: "Notas finais e faltas por matrícula",
+            explanation: "Armazena o desempenho acadêmico do aluno em cada matrícula. O campo nota_final tem uma constraint CHECK que garante valores entre 0 e 10. qtde_faltas registra o número de faltas. Cada matrícula pode ter apenas um registro de notas, permitindo acompanhamento do rendimento do aluno.",
+            columns: [
+                { name: "id_nota", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "qtde_faltas", type: "INTEGER", constraints: "DEFAULT 0" },
+                { name: "id_matricula", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" },
+                { name: "nota_final", type: "REAL", constraints: "CHECK (0-10)" }
+            ],
+            data: [
+                { id_nota: 1, qtde_faltas: 2, id_matricula: 1, nota_final: 8.5, aluno: "Ana Lima", disciplina: "Banco de Dados" },
+                { id_nota: 2, qtde_faltas: 0, id_matricula: 2, nota_final: 9.0, aluno: "Bruno Mendes", disciplina: "Rede de Computadores" }
+            ]
+        },
+        contratos_educacionais: {
+            description: "Contratos financeiros dos alunos",
+            explanation: "Registra o contrato educacional de cada aluno, que define o início do vínculo financeiro. Cada aluno pode ter múltiplos contratos ao longo do tempo (ex: renovação). data_inicio marca quando o contrato entrou em vigor. As mensalidades serão geradas baseadas neste contrato.",
+            columns: [
+                { name: "id_contrato", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "id_aluno", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" },
+                { name: "data_inicio", type: "DATE", constraints: "NOT NULL" },
+                { name: "created_at", type: "DATETIME", constraints: "DEFAULT CURRENT_TIMESTAMP" }
+            ],
+            data: [
+                { id_contrato: 1, id_aluno: 1, aluno: "Ana Lima", data_inicio: "2026-03-14" },
+                { id_contrato: 2, id_aluno: 2, aluno: "Bruno Mendes", data_inicio: "2026-03-14" }
+            ]
+        },
+        mensalidades: {
+            description: "Mensalidades vinculadas aos contratos",
+            explanation: "Define as mensalidades a serem pagas para cada contrato. status_pagamento pode ser 'pendente', 'pago' ou 'atrasado'. valor_mensalidade define o valor a ser pago, e data_vencimento quando deve ser pago. As mensalidades são geradas periodicamente baseadas no contrato.",
+            columns: [
+                { name: "id_mensalidade", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "id_contrato", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" },
+                { name: "valor_mensalidade", type: "REAL", constraints: "NOT NULL" },
+                { name: "data_vencimento", type: "DATE", constraints: "NOT NULL" },
+                { name: "status_pagamento", type: "TEXT", constraints: "DEFAULT 'pendente' CHECK" }
+            ],
+            data: [
+                { id_mensalidade: 1, id_contrato: 1, valor_mensalidade: 1500.00, data_vencimento: "2026-04-10", status_pagamento: "pago", aluno: "Ana Lima" },
+                { id_mensalidade: 2, id_contrato: 2, valor_mensalidade: 1500.00, data_vencimento: "2026-04-10", status_pagamento: "pago", aluno: "Bruno Mendes" }
+            ]
+        },
+        pagamentos: {
+            description: "Registro de pagamentos realizados",
+            explanation: "Registra os pagamentos efetuados para cada mensalidade. data_pagamento é a data em que o pagamento foi realizado, e valor_pago é o montante pago. Um aluno pode pagar uma mensalidade em múltiplas parcelas, por isso é separado da tabela mensalidades.",
+            columns: [
+                { name: "id_pagamento", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "id_mensalidade", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" },
+                { name: "data_pagamento", type: "DATE", constraints: "NOT NULL" },
+                { name: "valor_pago", type: "REAL", constraints: "NOT NULL" },
+                { name: "created_at", type: "DATETIME", constraints: "DEFAULT CURRENT_TIMESTAMP" }
+            ],
+            data: [
+                { id_pagamento: 1, id_mensalidade: 1, data_pagamento: "2026-04-08", valor_pago: 1500.00, mensalidade_ref: "Mensalidade Abril - Ana Lima" },
+                { id_pagamento: 2, id_mensalidade: 2, data_pagamento: "2026-04-08", valor_pago: 1500.00, mensalidade_ref: "Mensalidade Abril - Bruno Mendes" }
+            ]
+        },
+        vinculos_professor_disciplina: {
+            description: "Vínculo entre professores e disciplinas",
+            explanation: "Tabela de relacionamento muitos-para-muitos entre professores e disciplinas. Um professor pode lecionar várias disciplinas, e uma disciplina pode ter vários professores. A constraint UNIQUE evita vínculos duplicados. É essencial para saber quem ministra cada disciplina.",
+            columns: [
+                { name: "id_vinculo", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "id_professor", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" },
+                { name: "id_disciplina", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" }
+            ],
+            data: [
+                { id_vinculo: 1, id_professor: 1, professor: "Carlos Souza", id_disciplina: 1, disciplina: "Banco de Dados" },
+                { id_vinculo: 2, id_professor: 2, professor: "Fernanda Rocha", id_disciplina: 2, disciplina: "Rede de Computadores" }
+            ]
+        },
+        carga_horaria_docente: {
+            description: "Carga horária semanal dos professores",
+            explanation: "Define a carga horária de trabalho de cada professor. horas_aula representa o número de aulas semanais que o professor deve cumprir. Isso é importante para planejamento de alocações e cálculo de salários. Cada professor pode ter um registro de carga horária.",
+            columns: [
+                { name: "id_cargo", type: "INTEGER", constraints: "PRIMARY KEY AUTOINCREMENT" },
+                { name: "id_professor", type: "INTEGER", constraints: "NOT NULL, FOREIGN KEY" },
+                { name: "horas_aula", type: "INTEGER", constraints: "NOT NULL" }
+            ],
+            data: [
+                { id_cargo: 1, id_professor: 1, horas_aula: 40, professor: "Carlos Souza" },
+                { id_cargo: 2, id_professor: 2, horas_aula: 30, professor: "Fernanda Rocha" }
+            ]
+        }
+    };
+
+    // Gerar abas e conteúdo
+    const tableNames = Object.keys(databaseSchema);
+    const tabsHeader = document.getElementById('tabsHeader');
+    const tabsContent = document.getElementById('tabsContent');
+
+    // Criar abas
+    tableNames.forEach((tableName, index) => {
+        const tabBtn = document.createElement('button');
+        tabBtn.className = 'tab-btn';
+        if (index === 0) tabBtn.classList.add('active');
+        tabBtn.innerHTML = `<i class="fas ${getIconForTable(tableName)}"></i> ${tableName}`;
+        tabBtn.onclick = () => switchTab(tableName);
+        tabsHeader.appendChild(tabBtn);
+    });
+
+    function getIconForTable(tableName) {
+        const icons = {
+            funcionarios: 'fa-user-tie',
+            alunos: 'fa-graduation-cap',
+            cursos: 'fa-book',
+            professores: 'fa-chalkboard-user',
+            disciplinas: 'fa-layer-group',
+            matriculas: 'fa-user-check',
+            notas: 'fa-star',
+            contratos_educacionais: 'fa-file-signature',
+            mensalidades: 'fa-calendar-dollar',
+            pagamentos: 'fa-credit-card',
+            vinculos_professor_disciplina: 'fa-handshake',
+            carga_horaria_docente: 'fa-clock'
+        };
+        return icons[tableName] || 'fa-table';
+    }
+
+    function renderTableContent(tableName) {
+        const table = databaseSchema[tableName];
+        
+        return `
+            <div class="info-card">
+                <h3><i class="fas fa-info-circle"></i> Sobre a tabela</h3>
+                <p><strong>${table.description}</strong></p>
+                ${table.relations ? `<div style="margin-top: 0.5rem;"><span class="fk-badge"><i class="fas fa-link"></i> ${table.relations.join(', ')}</span></div>` : ''}
+            </div>
+
+            <h3 style="margin-bottom: 0.8rem; color: #1a4c6e;"><i class="fas fa-code-branch"></i> Estrutura das Colunas</h3>
+            <table class="structure-table">
+                <thead>
+                    <tr>
+                        <th>Coluna</th>
+                        <th>Tipo</th>
+                        <th>Constraints</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${table.columns.map(col => `
+                        <tr>
+                            <td><span class="field-name-code">${col.name}</span></td>
+                            <td>${col.type}</td>
+                            <td>${col.constraints.split(',').map(c => `<span class="constraint-tag">${c.trim()}</span>`).join('')}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+
+            <h3 style="margin-bottom: 0.8rem; margin-top: 1.5rem; color: #1a4c6e;"><i class="fas fa-database"></i> Dados Inseridos (Exemplo Prático)</h3>
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            ${Object.keys(table.data[0] || {}).map(key => `<th>${key}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${table.data.length > 0 ? table.data.map(row => `
+                            <tr>
+                                ${Object.values(row).map(value => `<td>${value !== null && value !== undefined ? value : '-'}</td>`).join('')}
+                            </tr>
+                        `).join('') : '<tr><td colspan="100" class="empty-data">Nenhum dado inserido ainda</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="explanation-box">
+                <h4><i class="fas fa-graduation-cap"></i> 📚 O que faz esta tabela?</h4>
+                <p>${table.explanation}</p>
+                <p style="margin-top: 0.8rem;"><strong>🎯 Exemplo de uso:</strong> ${getUseCase(tableName)}</p>
+            </div>
+        `;
+    }
+
+    function getUseCase(tableName) {
+        const useCases = {
+            funcionarios: "Cadastrar novos funcionários e gerenciar informações de recursos humanos.",
+            alunos: "Manter cadastro de alunos, verificar CPF duplicado, controlar status acadêmico.",
+            cursos: "Definir novos cursos e estruturar a grade curricular.",
+            professores: "Vincular funcionários ao cargo de professor para atribuição de disciplinas.",
+            disciplinas: "Criar disciplinas e associá-las aos cursos correspondentes.",
+            matriculas: "Realizar matrículas de alunos em disciplinas, evitando duplicidade.",
+            notas: "Registrar notas e faltas dos alunos para acompanhamento de desempenho.",
+            contratos_educacionais: "Gerenciar contratos financeiros e períodos de vigência.",
+            mensalidades: "Controlar valores e vencimentos das mensalidades dos alunos.",
+            pagamentos: "Registrar pagamentos realizados e atualizar status das mensalidades.",
+            vinculos_professor_disciplina: "Atribuir professores às disciplinas que irão lecionar.",
+            carga_horaria_docente: "Definir carga horária semanal dos professores para planejamento."
+        };
+        return useCases[tableName] || "Gerenciar informações relacionadas a esta entidade no sistema acadêmico.";
+    }
+
+    function switchTab(activeTable) {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.innerHTML.includes(activeTable)) {
+                btn.classList.add('active');
+            }
+        });
+        tabsContent.innerHTML = renderTableContent(activeTable);
+    }
+
+    if (tableNames.length > 0) {
+        tabsContent.innerHTML = renderTableContent(tableNames[0]);
+    }
+
+    // Configurar formulário dinâmico para teste
+    const testTableSelect = document.getElementById('testTableSelect');
+    const dynamicForm = document.getElementById('dynamicForm');
+
+    function updateDynamicForm() {
+        const tableName = testTableSelect.value;
+        const table = databaseSchema[tableName];
+        
+        if (!table || table.columns.length === 0) return;
+        
+        let formHtml = '<div class="form-group"><label>Novo Registro:</label></div>';
+        
+        table.columns.forEach(col => {
+            if (col.name.includes('id') && col.constraints.includes('AUTOINCREMENT')) return;
+            
+            let inputType = 'text';
+            if (col.type === 'INTEGER') inputType = 'number';
+            if (col.type === 'REAL') inputType = 'number';
+            if (col.type === 'DATE') inputType = 'date';
+            
+            formHtml += `
+                <div class="form-group">
+                    <label>${col.name}:</label>
+                    <input type="${inputType}" id="field_${col.name}" placeholder="Digite o valor para ${col.name}" step="any">
+                </div>
+            `;
+        });
+        
+        dynamicForm.innerHTML = formHtml;
+    }
+    
+    testTableSelect.addEventListener('change', updateDynamicForm);
+    updateDynamicForm();
+    
+    // Função para inserir dados de teste
+    window.insertTestData = function() {
+        const tableName = testTableSelect.value;
+        const table = databaseSchema[tableName];
+        
+        if (!table) {
+            showResult('error', 'Erro: Tabela não encontrada!');
+            return;
+        }
+        
+        const newRecord = {};
+        let hasData = false;
+        
+        table.columns.forEach(col => {
+            if (col.name.includes('id') && col.constraints.includes('AUTOINCREMENT')) return;
+            
+            const input = document.getElementById(`field_${col.name}`);
+            if (input && input.value.trim() !== '') {
+                hasData = true;
+                let value = input.value.trim();
+                
+                if (col.type === 'INTEGER' || col.type === 'REAL') {
+                    value = parseFloat(value);
+                }
+                
+                newRecord[col.name] = value;
+            }
+        });
+        
+        if (!hasData) {
+            showResult('error', 'Por favor, preencha pelo menos um campo para inserir!');
+            return;
+        }
+        
+        // Gerar ID auto incremental
+        const lastId = table.data.length > 0 ? Math.max(...table.data.map(r => r[table.columns[0].name])) : 0;
+        const idField = table.columns[0].name;
+        newRecord[idField] = lastId + 1;
+        
+        // Adicionar dados de demonstração para campos relacionados
+        if (tableName === 'notas' && !newRecord.id_matricula) {
+            showResult('error', 'Para notas, é necessário informar o id_matricula!');
+            return;
+        }
+        
+        table.data.push(newRecord);
+        
+        showResult('success', `✅ Dados inseridos com sucesso na tabela ${tableName}! ID gerado: ${newRecord[idField]}`);
+        
+        // Atualizar visualização
+        if (document.querySelector('.tab-btn.active').innerHTML.includes(tableName)) {
+            tabsContent.innerHTML = renderTableContent(tableName);
+        }
+        
+        // Mostrar preview
+        const previewDiv = document.getElementById('dataPreview');
+        previewDiv.style.display = 'block';
+        previewDiv.innerHTML = `
+            <h4><i class="fas fa-eye"></i> Prévia do dado inserido:</h4>
+            <table class="data-table" style="margin-top: 0.5rem;">
+                <thead><tr>${Object.keys(newRecord).map(k => `<th>${k}</th>`).join('')}</tr></thead>
+                <tbody><tr>${Object.values(newRecord).map(v => `<td>${v}</td>`).join('')}</tr></tbody>
+            </table>
+            <p style="margin-top: 0.5rem; color: #4caf50;"><i class="fas fa-check-circle"></i> Dado integrado ao sistema! Navegue pela aba "${tableName}" para ver todos os registros atualizados.</p>
+        `;
+        
+        // Limpar formulário
+        table.columns.forEach(col => {
+            const input = document.getElementById(`field_${col.name}`);
+            if (input) input.value = '';
+        });
+        
+        setTimeout(() => {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.classList.remove('show');
+        }, 4000);
+    };
+    
+    function showResult(type, message) {
+        const resultDiv = document.getElementById('testResult');
+        resultDiv.className = `test-result show ${type}`;
+        resultDiv.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${message}`;
+    }
+
+    // Scroll to top
+    const scrollBtn = document.getElementById('scrollTop');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            scrollBtn.classList.add('visible');
+        } else {
+            scrollBtn.classList.remove('visible');
+        }
+    });
+    scrollBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+</script>
+</body>
+</html>
